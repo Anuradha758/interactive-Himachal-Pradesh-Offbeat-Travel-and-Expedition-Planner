@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Himachal Pradesh | Wireframe Himalaya</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<style>
+  ::-webkit-scrollbar { display: none; }
+  html { scrollbar-width: none; -ms-overflow-style: none; }
+  html, body { background: #fafaf8; color: #14201c; }
+  body { font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; touch-action: pan-y; }
+  :root { --accent: #0d5c45; }
+  .glass {
+    background: rgba(255, 255, 255, 0.72);
+    -webkit-backdrop-filter: blur(14px) saturate(120%);
+    backdrop-filter: blur(14px) saturate(120%);
+    border: 1px solid rgba(20, 32, 28, 0.08);
+    box-shadow: 0 8px 30px rgba(20, 32, 28, 0.06);
+  }
+  .swap { transition: opacity .35s ease, transform .35s ease, filter .35s ease; }
+  .swap.out { opacity: 0; transform: translateY(8px); filter: blur(4px); }
+  .accent { color: var(--accent); transition: color .3s linear; }
+  .sheet { min-height: 100vh; display: flex; align-items: center; padding: 6rem 1.25rem; }
+  .tilt { transform: perspective(700px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg)); transition: transform .18s ease-out, border-color .2s; }
+  .tilt:hover { border-color: var(--accent); }
+  /* stage dots */
+  .dot { width: 14px; height: 14px; border-radius: 999px; border: 2px solid rgba(20,32,28,.28); background: transparent; transition: all .25s; }
+  .dot.on { background: var(--accent); border-color: var(--accent); transform: scale(1.25); }
+  .dot:hover { border-color: var(--accent); }
+  /* 3D pins */
+  .mk { position: fixed; left: 0; top: 0; z-index: 15; display: flex; align-items: center; gap: .5rem; padding: .3rem .65rem .3rem .4rem; border-radius: 999px; font-size: .75rem; color: #14201c; cursor: pointer; will-change: transform, opacity; }
+  .mk i { width: 10px; height: 10px; border-radius: 999px; background: var(--accent); box-shadow: 0 0 0 0 var(--accent); animation: ping 2s infinite; }
+  .mk:hover, .mk:focus-visible { border-color: var(--accent); outline: none; }
+  @keyframes ping { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 70%, transparent); } 100% { box-shadow: 0 0 0 12px transparent; } }
+  #info { transition: opacity .3s, transform .3s; }
+  #info.hide { opacity: 0; transform: translateY(14px); pointer-events: none; }
+  @media (prefers-reduced-motion: reduce) { .swap, .tilt, #info { transition: none; } .mk i { animation: none; } }
+
+  /* ---- Landing layer ---- */
+  @media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+  .serif { font-family: 'Iowan Old Style', 'Palatino Linotype', Palatino, 'Book Antiqua', Georgia, 'Times New Roman', serif; font-weight: 400; letter-spacing: -0.02em; }
+  .geo { font-family: 'Avenir Next', Avenir, 'Century Gothic', 'Gill Sans', 'Segoe UI', system-ui, sans-serif; }
+  .w { display: inline-block; overflow: hidden; vertical-align: top; padding-bottom: .14em; margin-bottom: -.14em; }
+  .w > span { display: inline-block; transform: translateY(112%); transition: transform 1s cubic-bezier(.2,.75,.15,1); }
+  .in .w > span { transform: none; }
+  .fade { opacity: 0; transform: translateY(18px); transition: opacity .9s ease, transform .9s cubic-bezier(.2,.75,.15,1); }
+  .fade.in { opacity: 1; transform: none; }
+  .sw { display: inline-block; opacity: .14; }
+  .veil { background: linear-gradient(90deg, rgba(250,250,248,.9), rgba(250,250,248,.62) 62%, rgba(250,250,248,0)); }
+  #hero { position: relative; height: 112vh; overflow: hidden; -webkit-mask-image: linear-gradient(#000 88%, transparent); mask-image: linear-gradient(#000 88%, transparent); }
+  #layers { position: absolute; left: 0; right: 0; top: 0; height: 100vh; }
+  .layer { position: absolute; left: -4%; width: 108%; bottom: 0; height: 62vh; will-change: transform; }
+  .sun { position: absolute; right: 12vw; top: 14vh; width: 18vw; height: 18vw; border-radius: 999px; background: radial-gradient(closest-side, rgba(255,238,205,.95), rgba(255,238,205,0)); will-change: transform; }
+  .cloud { position: absolute; width: 42vw; height: 12vh; will-change: transform; }
+  .cloud i { display: block; width: 100%; height: 100%; background: radial-gradient(closest-side, rgba(255,255,255,.95), rgba(255,255,255,0)); animation: drift 48s ease-in-out infinite alternate; }
+  @keyframes drift { from { transform: translateX(-9vw); } to { transform: translateX(9vw); } }
+  .btn { position: relative; display: inline-flex; align-items: center; border-radius: 999px; padding: 1rem 1.8rem; font-size: .95rem; overflow: hidden; isolation: isolate; transition: color .35s, border-color .35s, transform .5s cubic-bezier(.2,.75,.15,1); cursor: pointer; }
+  .btn::before { content: ""; position: absolute; inset: 0; z-index: -1; background: var(--accent); transform: translateY(101%); border-radius: 50% 50% 0 0 / 100% 100% 0 0; transition: transform .45s cubic-bezier(.2,.75,.15,1), border-radius .45s; }
+  .btn:hover::before, .btn:focus-visible::before { transform: none; border-radius: 0; }
+  .btn-solid { background: #14201c; color: #fff; }
+  .btn-line { border: 1px solid rgba(20,32,28,.3); }
+  .btn-line:hover, .btn-line:focus-visible { color: #fff; border-color: var(--accent); }
+  .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+  .mag { display: inline-block; transition: transform .6s cubic-bezier(.2,.75,.15,1); }
+  .mag.on { transition: transform .12s linear; }
+  .chip { padding: .6rem 1.1rem; font-size: .9rem; }
+  .chip[aria-pressed="true"] { background: #14201c; color: #fff; border-color: #14201c; }
+  .trail { flex: 0 0 min(82vw, 24rem); height: min(60vh, 31rem); }
+  @media (prefers-reduced-motion: reduce) { .w > span, .fade { transition: none; transform: none; opacity: 1; } .cloud i { animation: none; } }
+  .trail { position: relative; }
+  .trail .pick { position: absolute; top: 1.1rem; right: 1.1rem; z-index: 2; font-size: .72rem; padding: .3rem .7rem; border-radius: 999px; border: 1px solid rgba(20,32,28,.3); background: rgba(255,255,255,.85); }
+  .trail .pick::before { content: '+ Add trail'; }
+  .trail[aria-pressed="true"] { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent); }
+  .trail[aria-pressed="true"] .pick { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .trail[aria-pressed="true"] .pick::before { content: '\2713  Added'; }
+  .trail:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+  .pill { display: inline-flex; align-items: center; gap: .3rem; padding: .3rem .4rem .3rem .85rem; border-radius: 999px; border: 1px solid rgba(20,32,28,.25); background: #fff; font-size: .85rem; }
+  .pill.cu { border-color: var(--accent); color: var(--accent); }
+  .pill button { border: 0; background: none; cursor: pointer; font-size: 1.1rem; line-height: 1; padding: 0 .35rem; opacity: .6; }
+  .pill button:hover, .pill button:focus-visible { opacity: 1; }
+</style>
+</head>
+<body>
+
+<canvas id="scene" class="fixed inset-0 w-full h-full" style="z-index:0" aria-hidden="true"></canvas>
+<div id="markers" aria-label="Places on the map"></div>
+
+<header class="fixed top-3 left-3 right-3 md:top-6 md:left-8 md:right-8 z-20 flex items-start justify-between gap-3 pointer-events-none" style="padding-top:env(safe-area-inset-top,0px)">
+  <!-- <div class="glass rounded-2xl px-4 py-3 md:px-5 md:py-4 max-w-[17rem] md:max-w-sm pointer-events-auto">
+    <p class="text-xs opacity-60">Himachal Pradesh, now viewing</p>
+    <h2 id="hudTitle" class="swap text-lg md:text-2xl font-semibold leading-tight mt-1 accent">Himachal Pradesh</h2>
+    <p id="hudCopy" class="swap text-xs md:text-sm opacity-75 mt-1 leading-snug">The whole state in outline, from Shivalik foothills to the Tibetan border.</p>
+  </div> -->
+  <div></div>
+  <div class="glass rounded-2xl px-4 py-2 md:py-3 text-right">
+    <p class="text-xs opacity-60">Altitude</p>
+    <p class="text-xl md:text-2xl font-semibold tabular-nums accent"><span id="hudAlt">700</span> m</p>
+  </div>
+</header>
+
+<!-- Stage navigation -->
+<nav class="fixed right-3 md:right-6 top-1/2 -translate-y-1/2 z-20 flex flex-col items-center gap-7 py-3 px-2 glass rounded-full" aria-label="Jump to stage">
+  <button class="dot on" data-stage="0" aria-label="Whole state" title="Whole state"></button>
+  <button class="dot" data-stage="1" aria-label="Dhauladhar and Pir Panjal" title="Dhauladhar and Pir Panjal"></button>
+  <button class="dot" data-stage="2" aria-label="Lahaul and Spiti passes" title="Lahaul and Spiti passes"></button>
+</nav>
+
+<!-- Pin detail card -->
+<aside id="info" class="hide glass rounded-2xl p-4 md:p-5 fixed z-20 left-3 right-3 md:left-8 md:right-auto md:max-w-sm" style="bottom:calc(1rem + env(safe-area-inset-bottom,0px))" role="status">
+  <div class="flex justify-between gap-3">
+    <h3 id="infoName" class="text-lg font-semibold accent"></h3>
+    <button id="infoClose" class="opacity-60 hover:opacity-100 text-sm" aria-label="Close">Close</button>
+  </div>
+  <p id="infoAlt" class="text-xs opacity-60 mt-0.5"></p>
+  <p id="infoText" class="text-sm opacity-85 mt-2 leading-relaxed"></p>
+</aside>
+
+<!-- Hint -->
+<p id="hint" class="fixed z-20 left-1/2 -translate-x-1/2 glass rounded-full px-4 py-2 text-xs md:text-sm whitespace-nowrap transition-opacity duration-700" style="bottom:calc(1rem + env(safe-area-inset-bottom,0px))">
+  Touch the terrain to make it ripple, tap a pin to visit
+</p>
+
+<main class="relative z-10 geo">
+
+  <!-- Hero: layered landscape with parallax -->
+  <section id="hero">
+    <div id="layers" aria-hidden="true"></div>
+    <div id="heroText" class="relative z-[5] h-screen flex flex-col justify-center px-6 md:px-[8vw] pt-[16vh]">
+      <p class="text-sm opacity-70 mb-5" data-reveal>A travel guide to Himachal Pradesh, India</p>
+      <h1 class="serif text-[clamp(3rem,9.2vw,8.4rem)] leading-[.96] max-w-[14ch]" data-reveal>Mountains that keep their own time.</h1>
+      <div class="mt-8 flex flex-col md:flex-row md:items-end gap-7 md:gap-14">
+        <p class="max-w-md text-base md:text-lg opacity-80 leading-relaxed" data-reveal>Five great ranges, trails from apple orchards to 5,000-metre passes, and a slower way to see them.</p>
+        <div class="flex flex-wrap gap-3">
+          <div class="mag"><a href="#plan" class="btn btn-solid">Plan your route</a></div>
+          <div class="mag"><a href="#trails" class="btn btn-line">See the trails</a></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Editorial intro: words light up as you scroll -->
+  <section class="px-6 md:px-[8vw] py-[18vh]">
+    <div class="veil -mx-6 md:-mx-[8vw] px-6 md:px-[8vw] py-12 max-w-[78rem]">
+      <p class="serif scrub text-[clamp(1.8rem,4.2vw,3.7rem)] leading-[1.14] max-w-4xl">Himachal is not one landscape but three stacked on top of each other. Green valleys at the base, narrow ridges above them, and bare high passes where the road gives out and the sky takes over.</p>
+      <div class="grid md:grid-cols-3 gap-8 mt-16 max-w-4xl">
+        <div class="fade border-t border-black/15 pt-4"><h3 class="serif text-2xl">Valleys</h3><p class="text-sm opacity-70 mt-1">350 to 2,000 m</p><p class="mt-3 text-sm leading-relaxed opacity-80">Tea gardens, pine slopes and orchard towns like Palampur and Shimla.</p></div>
+        <div class="fade border-t border-black/15 pt-4" style="transition-delay:.12s"><h3 class="serif text-2xl">Ridges</h3><p class="text-sm opacity-70 mt-1">2,000 to 4,000 m</p><p class="mt-3 text-sm leading-relaxed opacity-80">Narrow spines and meadows across the Dhauladhar and Pir Panjal.</p></div>
+        <div class="fade border-t border-black/15 pt-4" style="transition-delay:.24s"><h3 class="serif text-2xl">Passes</h3><p class="text-sm opacity-70 mt-1">Above 4,000 m</p><p class="mt-3 text-sm leading-relaxed opacity-80">Rohtang, Kunzum La and Baralacha La, open for a few months a year.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Horizontal scroll: trail highlights -->
+  <section id="trails" class="relative">
+    <div class="sticky top-0 h-screen overflow-hidden flex flex-col justify-center">
+      <div class="px-6 md:px-[8vw] mb-6 md:mb-8 flex items-end justify-between gap-6 pt-16">
+        <h2 class="serif text-[clamp(2.2rem,5vw,4.5rem)] leading-none" data-reveal>Trail highlights</h2>
+        <p class="text-sm opacity-65 hidden md:block max-w-[16rem]">Keep scrolling and the trails slide across. Hover to light one up on the map, click to add it to your plan.</p>
+      </div>
+      <div id="track" class="flex gap-5 md:gap-7 px-6 md:px-[8vw] will-change-transform"></div>
+      <div class="mx-6 md:mx-[8vw] mt-7 h-px bg-black/10"><div id="trailBar" class="h-px origin-left" style="background:var(--accent);transform:scaleX(0)"></div></div>
+    </div>
+  </section>
+
+  <!-- Plan: season picker -->
+  <section id="plan" class="min-h-screen flex items-center px-6 md:px-[8vw] py-24">
+    <div class="veil -mx-6 md:-mx-[8vw] px-6 md:px-[8vw] py-12 max-w-[60rem] w-full">
+      <h2 class="serif text-[clamp(2.4rem,6vw,5.5rem)] leading-none" data-reveal>When are you going?</h2>
+      <div id="seasons" class="mt-8 flex flex-wrap gap-2" role="group" aria-label="Season"></div>
+      <div class="glass rounded-3xl p-6 md:p-8 mt-6 max-w-xl">
+        <h3 id="sTitle" class="serif text-2xl md:text-3xl swap accent"></h3>
+        <p id="sText" class="mt-3 text-sm md:text-base leading-relaxed opacity-80 swap"></p>
+        <p id="planSum" class="mt-5 pt-4 border-t border-black/10 text-sm accent" aria-live="polite"></p>
+        <div id="pills" class="mt-3 flex flex-wrap gap-2"></div>
+        <label for="cust" class="block text-sm opacity-70 mt-5">Add custom destination</label>
+        <div class="flex gap-2 mt-2">
+          <input id="cust" type="text" maxlength="40" autocomplete="off" placeholder="Any Himachal place, e.g. Chitkul" class="glass rounded-full px-5 py-3 flex-1 min-w-0" style="font-size:1rem">
+          <button id="custAdd" type="button" class="btn btn-solid chip">+ Add</button>
+        </div>
+        <p id="custMsg" class="text-xs mt-2 min-h-[1rem] accent" aria-live="polite"></p>
+      </div>
+      <div class="mt-8 flex flex-wrap gap-3">
+        <div class="mag"><a id="planBtn" href="details.html" class="btn btn-solid">Plan my trip</a></div>
+        <div class="mag"><button class="btn btn-line" id="toTop">Back to the map</button></div>
+        <div class="mag"><a href="#trails" class="btn btn-line">Review trails</a></div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="px-6 md:px-[8vw] pb-12 pt-6 text-xs opacity-60 max-w-3xl leading-relaxed">
+    The map is a hand-simplified outline of Himachal Pradesh drawn with Three.js. Heights, distances and seasons are approximate. Check road and weather conditions before you travel.
+  </footer>
+</main>
+
+<script>
+(() => {
+  'use strict';
+  const small = window.innerWidth < 700;
+
+  /* ---------- Renderer, scene, camera ---------- */
+  const canvas = document.getElementById('scene');
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: !small });
+  renderer.setClearColor(0xfafaf8, 1);
+  const scene = new THREE.Scene();
+  scene.fog = new THREE.FogExp2(0xfafaf8, 0.005);
+  const camera = new THREE.PerspectiveCamera(60, 1, 0.1, 600);
+
+  /* ---------- Himachal Pradesh: simplified GeoJSON, extruded into relief ---------- */
+  // Hand-simplified state outline (approximate). Swap in any real HP Polygon feature here.
+  const HP_GEOJSON = { type: 'FeatureCollection', features: [{ type: 'Feature', properties: { name: 'Himachal Pradesh' },
+    geometry: { type: 'Polygon', coordinates: [[
+      [75.72,32.30],[75.78,32.42],[75.84,32.52],[75.92,32.62],[75.98,32.74],[76.05,32.86],[76.20,32.97],[76.38,33.07],
+      [76.55,33.14],[76.78,33.22],[76.98,33.16],[77.12,33.04],[77.32,33.02],[77.52,32.96],[77.74,33.00],[77.98,32.94],
+      [78.20,32.98],[78.42,32.92],[78.60,32.80],[78.70,32.66],[78.66,32.50],[78.78,32.40],[78.84,32.22],[78.94,32.06],
+      [78.88,31.88],[78.76,31.78],[78.80,31.60],[78.74,31.44],[78.62,31.30],[78.48,31.22],[78.34,31.14],[78.20,31.08],
+      [78.08,30.98],[77.96,30.88],[77.86,30.92],[77.82,30.78],[77.72,30.68],[77.64,30.58],[77.62,30.46],[77.50,30.40],
+      [77.34,30.38],[77.20,30.42],[77.14,30.54],[77.02,30.60],[76.94,30.70],[76.90,30.82],[76.82,30.86],[76.82,30.96],
+      [76.70,31.02],[76.60,31.10],[76.62,31.22],[76.50,31.30],[76.36,31.34],[76.22,31.26],[76.10,31.28],[76.04,31.42],
+      [76.02,31.58],[75.98,31.72],[76.10,31.84],[76.00,31.96],[75.86,32.04],[75.74,32.14],[75.72,32.30]
+    ]] } }] };
+
+  const LON0 = 77.25, LAT0 = 31.8, K = 40, KX = K * 0.85;   // 1 degree of latitude = 40 scene units
+  const ll = (lon, lat) => [(lon - LON0) * KX, -(lat - LAT0) * K];
+  const POLY = HP_GEOJSON.features[0].geometry.coordinates[0].slice(0, -1).map(p => ll(p[0], p[1]));
+  const sstep = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+
+  function segDist(px, pz, ax, az, bx, bz) {
+    const dx = bx - ax, dz = bz - az, t = Math.min(1, Math.max(0, ((px - ax) * dx + (pz - az) * dz) / (dx * dx + dz * dz)));
+    return Math.hypot(px - (ax + t * dx), pz - (az + t * dz));
+  }
+  function signedDist(x, z) {   // positive inside the border, negative outside
+    let inside = false, d = 1e9;
+    for (let i = 0, j = POLY.length - 1; i < POLY.length; j = i++) {
+      const a = POLY[i], b = POLY[j];
+      if ((a[1] > z) !== (b[1] > z) && x < (b[0] - a[0]) * (z - a[1]) / (b[1] - a[1]) + a[0]) inside = !inside;
+      d = Math.min(d, segDist(x, z, a[0], a[1], b[0], b[1]));
+    }
+    return inside ? d : -d;
+  }
+  // Mountain ranges as ridge lines: [lon1, lat1, lon2, lat2, width, height]
+  const RANGES = [
+    [75.95, 32.05, 76.7, 32.4, 5, 11],   [76.5, 32.7, 77.4, 32.3, 5, 10],   [77.4, 32.3, 77.6, 32.0, 5, 9],
+    [77.6, 31.9, 78.3, 31.5, 5.5, 12],   [77.2, 33.0, 78.45, 32.8, 6, 14],  [76.3, 31.5, 77.3, 30.6, 7, 3.5]
+  ].map(r => [...ll(r[0], r[1]), ...ll(r[2], r[3]), r[4], r[5]]);
+  const ridge = (x, z, f, ph) => 1 - Math.abs(Math.sin(x * f + ph) * Math.cos(z * f * 0.9 - ph));
+
+  function heightAt(x, z) {
+    const m = sstep(0, 2.5, signedDist(x, z));      // steep rim so the silhouette reads as the map
+    const lat = LAT0 - z / K, lon = x / KX + LON0;
+    const north = Math.min(1, Math.max(0, (lat - 30.5) / 2.7));
+    const e = 0.12 + 0.88 * Math.pow(north, 1.2);
+    let h = 4 + e * 6 + sstep(77.3, 78.6, lon) * sstep(30.9, 31.8, lat) * 3;   // plateau tilts higher to the north-east
+    for (const r of RANGES) { const d = segDist(x, z, r[0], r[1], r[2], r[3]); h += r[5] * Math.exp(-(d * d) / (r[4] * r[4])); }
+    h += (ridge(x, z, 0.14, 0.6) * 3.5 + ridge(x, z, 0.3, 2.4) * 1.5) * (0.4 + e);
+    return h * m;
+  }
+
+  const SIZE = 200, SEG = small ? 110 : 160;
+  const geo = new THREE.PlaneGeometry(SIZE, SIZE, SEG, SEG);
+  geo.rotateX(-Math.PI / 2);
+  const pos = geo.attributes.position, col = new Float32Array(pos.count * 3), sds = new Float32Array(pos.count);
+  let hMax = 0;
+  for (let i = 0; i < pos.count; i++) {
+    const x = pos.getX(i), z = pos.getZ(i), y = heightAt(x, z);
+    pos.setY(i, y); sds[i] = signedDist(x, z); if (y > hMax) hMax = y;
+  }
+  for (let i = 0; i < pos.count; i++) {
+    const b = 0.04 + sstep(-0.5, 2, sds[i]) * (0.35 + 0.65 * Math.pow(pos.getY(i) / hMax, 0.8));
+    col[i * 3] = col[i * 3 + 1] = col[i * 3 + 2] = b;
+  }
+  geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+
+  /* Interactive uniforms: hover glow + click shockwave, injected into the wireframe shader */
+  const U = {
+    uTime: { value: 0 },
+    uHit: { value: new THREE.Vector3(0, 0, 0) },   // x, z (terrain space), strength
+    uRip: { value: new THREE.Vector4(0, 0, -99, 1) } // x, z, start time, active
+  };
+  const mat = new THREE.MeshBasicMaterial({
+    color: 0x0d5c45, wireframe: true, transparent: true, opacity: 0.85,
+    vertexColors: true, fog: true, depthWrite: false
+  });
+  mat.onBeforeCompile = (sh) => {
+    Object.assign(sh.uniforms, U);
+    sh.vertexShader = sh.vertexShader
+      .replace('#include <common>', `#include <common>
+        uniform float uTime; uniform vec3 uHit; uniform vec4 uRip; varying float vGlow;`)
+      .replace('#include <begin_vertex>', `#include <begin_vertex>
+        float hover = smoothstep(20.0, 0.0, distance(position.xz, uHit.xy)) * uHit.z;
+        float dr = distance(position.xz, uRip.xy);
+        float age = uTime - uRip.z;
+        float front = age * 42.0;
+        float w = sin((dr - front) * 0.4) * exp(-abs(dr - front) * 0.07) * exp(-age * 0.45) * step(0.0, age) * uRip.w;
+        transformed.y += hover * 2.8 + w * 5.5;
+        vGlow = hover * 0.9 + abs(w) * 1.5;`);
+    sh.fragmentShader = sh.fragmentShader
+      .replace('#include <common>', '#include <common>\nvarying float vGlow;')
+      .replace('#include <color_fragment>', 'diffuseColor.a *= vColor.r;')
+      .replace('#include <dithering_fragment>', `#include <dithering_fragment>
+        gl_FragColor.rgb *= 1.0 - min(vGlow, 1.0) * 0.55;
+        gl_FragColor.a = min(1.0, gl_FragColor.a + vGlow * 0.6);`);
+  };
+  const terrain = new THREE.Mesh(geo, mat);
+  const world = new THREE.Group();
+  world.add(terrain);
+  // Border: glowing rim line, a soft curtain down to the plain, and a faint filled silhouette
+  const bp = [], cp = [];
+  for (let i = 0; i < POLY.length; i++) {
+    const a = POLY[i], b = POLY[(i + 1) % POLY.length];
+    for (let k = 0; k < 10; k++) {
+      const t = k / 10, x = a[0] + (b[0] - a[0]) * t, z = a[1] + (b[1] - a[1]) * t, y = heightAt(x, z) + 0.6;
+      bp.push(x, y, z); cp.push(x, -0.2, z, x, y, z);
+    }
+  }
+  const bgeo = new THREE.BufferGeometry(); bgeo.setAttribute('position', new THREE.Float32BufferAttribute(bp, 3));
+  const bmat = new THREE.LineBasicMaterial({ color: 0x19f0a0, transparent: true, opacity: 0.95, fog: true, depthWrite: false });
+  world.add(new THREE.LineLoop(bgeo, bmat));
+  const cgeo = new THREE.BufferGeometry(); cgeo.setAttribute('position', new THREE.Float32BufferAttribute(cp, 3));
+  const cmat = new THREE.LineBasicMaterial({ color: 0x19f0a0, transparent: true, opacity: 0.16, fog: true, depthWrite: false });
+  world.add(new THREE.LineSegments(cgeo, cmat));
+  const shapeGeo = new THREE.ShapeGeometry(new THREE.Shape(POLY.map(p => new THREE.Vector2(p[0], -p[1]))));
+  shapeGeo.rotateX(-Math.PI / 2);
+  const fillMat = new THREE.MeshBasicMaterial({ color: 0x0d5c45, transparent: true, opacity: 0.07, side: THREE.DoubleSide, fog: true, depthWrite: false });
+  const fill = new THREE.Mesh(shapeGeo, fillMat); fill.position.y = 0.1; world.add(fill);
+  scene.add(world);
+
+  /* ---------- Drifting snow ---------- */
+  const N = small ? 450 : 1000, sp = new Float32Array(N * 3);
+  for (let i = 0; i < N; i++) { sp[i*3] = (Math.random()-.5)*220; sp[i*3+1] = Math.random()*90; sp[i*3+2] = (Math.random()-.5)*220; }
+  const sg = new THREE.BufferGeometry();
+  sg.setAttribute('position', new THREE.BufferAttribute(sp, 3));
+  const snow = new THREE.Points(sg, new THREE.PointsMaterial({
+    color: 0x6b7f78, size: 0.5, transparent: true, opacity: 0.4, fog: true, depthWrite: false
+  }));
+  scene.add(snow);
+
+  /* ---------- Scroll + camera keyframes ---------- */
+  const V = (x, y, z) => new THREE.Vector3(x, y, z);
+  const keys = [
+    { t: 0.0, pos: V(0, 105, 40),  look: V(0, 0, 0) },      // whole state from above
+    { t: 0.5, pos: V(-46, 16, 30), look: V(-15, 8, -22) },  // low along Dhauladhar and Pir Panjal
+    { t: 1.0, pos: V(4, 7, -2),    look: V(10, 30, -52) }   // up toward Spiti and Baralacha La
+  ];
+  const ease = x => x * x * (3 - 2 * x), clamp01 = x => Math.min(1, Math.max(0, x));
+  const camPos = new THREE.Vector3(), camLook = new THREE.Vector3();
+  function sampleKeys(r) {
+    const i = r < 0.5 ? 0 : 1, a = keys[i], b = keys[i + 1];
+    const k = ease(clamp01((r - a.t) / (b.t - a.t)));
+    camPos.lerpVectors(a.pos, b.pos, k); camLook.lerpVectors(a.look, b.look, k);
+  }
+  let target = 0, smooth = 0, prev = 0, vel = 0, fovKick = 0;
+  const readScroll = () => {
+    const max = document.documentElement.scrollHeight - innerHeight;
+    target = max > 0 ? clamp01(scrollY / max) : 0;
+  };
+  addEventListener('scroll', readScroll, { passive: true });
+
+  /* ---------- Pointer interaction ---------- */
+  const ptr = { x: 0, y: 0, sx: 0, sy: 0, ndcX: 0, ndcY: 0, active: false };
+  const ray = new THREE.Raycaster(), plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -6);
+  const hitW = new THREE.Vector3(), hitL = new THREE.Vector3(), inv = new THREE.Matrix4();
+  let hasHit = false;
+  const hint = document.getElementById('hint');
+  let hintDone = false; hint.style.opacity = 0;
+  const dismissHint = () => { hintDone = true; hint.style.opacity = 0; setTimeout(() => hint.remove(), 800); };
+
+  function pointerToTerrain() {
+    ray.setFromCamera({ x: ptr.ndcX, y: ptr.ndcY }, camera);
+    if (!ray.ray.intersectPlane(plane, hitW)) return false;
+    hitL.copy(hitW).applyMatrix4(inv.copy(world.matrixWorld).invert());
+    return true;
+  }
+  function shockwave(x, z) { U.uRip.value.set(x, z, U.uTime.value, 1); }
+  window.mapPulse = (lon, lat) => { const p = ll(lon, lat); shockwave(p[0], p[1]); };
+
+  addEventListener('pointermove', e => {
+    ptr.ndcX = (e.clientX / innerWidth) * 2 - 1; ptr.ndcY = -(e.clientY / innerHeight) * 2 + 1;
+    ptr.x = ptr.ndcX; ptr.y = ptr.ndcY; ptr.active = true;
+    const card = e.target.closest && e.target.closest('.tilt');
+    if (card) { const r = card.getBoundingClientRect();
+      card.style.setProperty('--ry', ((e.clientX - r.left) / r.width - .5) * 10 + 'deg');
+      card.style.setProperty('--rx', (-((e.clientY - r.top) / r.height - .5)) * 10 + 'deg'); }
+  }, { passive: true });
+  document.querySelectorAll('.tilt').forEach(c => c.addEventListener('pointerleave', () => { c.style.setProperty('--rx', '0deg'); c.style.setProperty('--ry', '0deg'); }));
+  document.addEventListener('pointerleave', () => { ptr.active = false; });
+  addEventListener('pointerup', e => { if (e.pointerType !== 'mouse') ptr.active = false; });
+  addEventListener('pointerdown', e => {
+    ptr.ndcX = (e.clientX / innerWidth) * 2 - 1; ptr.ndcY = -(e.clientY / innerHeight) * 2 + 1; ptr.active = true;
+    if (e.target.closest('.glass, button, nav, a')) return;
+    if (pointerToTerrain()) { shockwave(hitL.x, hitL.z); dismissHint(); }
+  });
+
+  /* ---------- Pins on the terrain (HTML projected from 3D) ---------- */
+  const P = (name, lon, lat, alt, text) => { const [x, z] = ll(lon, lat); return { name, x, z, alt, text }; };
+  const places = [
+    P('Chamba', 76.13, 32.55, '996 m', 'Ancient temple town on the Ravi, gateway to Pangi and the north-west corner of the state.'),
+    P('Dharamshala', 76.32, 32.22, '1,457 m', 'Below the Dhauladhar wall. The Triund ridge walk starts above McLeod Ganj.'),
+    P('Shimla', 77.17, 31.10, '2,276 m', 'The state capital, spread along a ridge with views toward the snow ranges.'),
+    P('Rohtang Pass', 77.25, 32.37, '3,978 m', 'Above Manali, linking the Kullu valley to Lahaul. Weather turns fast.'),
+    P('Kalpa', 78.25, 31.54, '2,960 m', 'Kinnaur village facing Kinner Kailash, among apple orchards and deodar forest.'),
+    P('Kaza', 78.07, 32.22, '3,800 m', 'The main town of Spiti, a cold desert valley near Key and Kibber.'),
+    P('Kunzum La', 77.63, 32.40, '4,551 m', 'The pass into Spiti from Lahaul, marked with prayer flags and a small shrine.'),
+    P('Baralacha La', 77.42, 32.75, '4,890 m', 'A high pass on the Manali-Leh road where three ranges meet.')
+  ];
+  const mkRoot = document.getElementById('markers');
+  const info = document.getElementById('info');
+  const infoName = document.getElementById('infoName'), infoAlt = document.getElementById('infoAlt'), infoText = document.getElementById('infoText');
+  places.forEach(p => {
+    p.y = heightAt(p.x, p.z) + 1.5; p.v = new THREE.Vector3();
+    p.el = document.createElement('button');
+    p.el.className = 'mk glass';
+    p.el.innerHTML = '<i></i><span class="hidden sm:inline"></span>';
+    p.el.lastChild.textContent = p.name; p.el.setAttribute('aria-label', p.name + ', ' + p.alt);
+    p.el.addEventListener('click', ev => { ev.stopPropagation(); openInfo(p); });
+    mkRoot.appendChild(p.el);
+  });
+  function openInfo(p) {
+    infoName.textContent = p.name; infoAlt.textContent = p.alt; infoText.textContent = p.text;
+    info.classList.remove('hide'); shockwave(p.x, p.z); dismissHint();
+  }
+  const closeInfo = () => info.classList.add('hide');
+  document.getElementById('infoClose').addEventListener('click', closeInfo);
+  addEventListener('keydown', e => { if (e.key === 'Escape') closeInfo(); });
+
+  /* ---------- Stage dots, HUD ---------- */
+  const stages = [
+    { title: 'Himachal Pradesh', copy: 'The whole state in outline, from Shivalik foothills to the Tibetan border.', alt: [450, 2200], at: 0 },
+    { title: 'Dhauladhar and Pir Panjal', copy: 'Low over the western ranges, tracing narrow ridges above Kangra and Kullu.', alt: [2200, 3900], at: 0.5 },
+    { title: 'Lahaul and Spiti passes', copy: 'Steep ground toward Baralacha La and the ice above 4,800 m.', alt: [3900, 5500], at: 1 }
+  ];
+  const dots = [...document.querySelectorAll('.dot')];
+  dots.forEach(d => d.addEventListener('click', () => {
+    const max = document.documentElement.scrollHeight - innerHeight;
+    scrollTo({ top: max * stages[+d.dataset.stage].at, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+  }));
+  addEventListener('keydown', e => { if (e.ctrlKey || e.metaKey || e.altKey || /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return; const n = ['1', '2', '3'].indexOf(e.key); if (n > -1) dots[n].click(); });
+  const hudTitle = document.getElementById('hudTitle'), hudCopy = document.getElementById('hudCopy'), hudAlt = document.getElementById('hudAlt');
+  let stage = 0, swapTimer;
+  function setStage(n) {
+    if (n === stage) return; stage = n;
+    dots.forEach((d, i) => d.classList.toggle('on', i === n));
+    hudTitle.classList.add('out'); hudCopy.classList.add('out');
+    clearTimeout(swapTimer);
+    swapTimer = setTimeout(() => {
+      hudTitle.textContent = stages[n].title; hudCopy.textContent = stages[n].copy;
+      hudTitle.classList.remove('out'); hudCopy.classList.remove('out');
+    }, 330);
+  }
+
+  /* ---------- Colours ---------- */
+  const cE = new THREE.Color(0x0d5c45), cC = new THREE.Color(0x0a6f86), cG = new THREE.Color(0x3a4f7a), tmp = new THREE.Color();
+  const root = document.documentElement;
+
+  /* ---------- Resize ---------- */
+  let baseFov = 60;
+  function resize() {
+    const w = innerWidth, h = innerHeight;
+    renderer.setPixelRatio(Math.min(devicePixelRatio || 1, w < 700 ? 1.5 : 2));
+    renderer.setSize(w, h, false);
+    camera.aspect = w / h; baseFov = w / h < 0.8 ? 74 : 60;
+    const fit = w / h < 1.1 ? 1 + (1.1 - w / h) * 1.3 : 1; keys[0].pos.set(0, 105 * fit, 40 * fit);
+    readScroll();
+  }
+  addEventListener('resize', resize);
+
+  /* ---------- Loop ---------- */
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const clock = new THREE.Clock(), local = new THREE.Vector3(), invM = new THREE.Matrix4();
+
+  function frame() {
+    requestAnimationFrame(frame);
+    const dt = Math.min(clock.getDelta(), 0.05);
+    U.uTime.value += dt;
+    if (!reduce) world.rotation.y = Math.sin(U.uTime.value * 0.14) * 0.38;   // slow, continuous swing keeps north roughly up
+    world.updateMatrixWorld(true);
+
+    smooth += (target - smooth) * (1 - Math.exp(-dt * 4.5));
+    const r = smooth;
+    vel += (((target - prev) / Math.max(dt, 1e-3)) - vel) * 0.1; prev = target;
+
+    // Pointer parallax (smoothed)
+    ptr.sx += (ptr.x - ptr.sx) * (1 - Math.exp(-dt * 3)); ptr.sy += (ptr.y - ptr.sy) * (1 - Math.exp(-dt * 3));
+
+    sampleKeys(r);
+    invM.copy(world.matrixWorld).invert();
+    local.copy(camPos).applyMatrix4(invM);
+    camPos.y = Math.max(camPos.y, heightAt(local.x, local.z) + 4);
+    camera.position.set(camPos.x + ptr.sx * 4, camPos.y + ptr.sy * 2, camPos.z);
+    camera.lookAt(camLook.x + ptr.sx * 3, camLook.y + ptr.sy * 2, camLook.z);
+
+    // Speed-lines feel: widen FOV while scrolling quickly
+    fovKick += (Math.min(10, Math.abs(vel) * 18) - fovKick) * 0.08;
+    camera.fov = baseFov + fovKick; camera.updateProjectionMatrix();
+
+    // Terrain hover glow follows pointer
+    camera.updateMatrixWorld();
+    hasHit = ptr.active && pointerToTerrain();
+    if (hasHit) { U.uHit.value.x += (hitL.x - U.uHit.value.x) * 0.25; U.uHit.value.y += (hitL.z - U.uHit.value.y) * 0.25; }
+    U.uHit.value.z += ((hasHit ? 1 : 0) - U.uHit.value.z) * 0.1;
+
+    // Snow drifts down and sideways with scroll speed
+    const a = sg.attributes.position.array, wind = vel * 60;
+    for (let i = 0; i < N; i++) {
+      a[i*3+1] -= dt * 4; a[i*3] += dt * (1.2 + wind) ; a[i*3+2] += dt * wind * 0.5;
+      if (a[i*3+1] < 0) a[i*3+1] = 90;
+      if (a[i*3] > 110) a[i*3] = -110; else if (a[i*3] < -110) a[i*3] = 110;
+      if (a[i*3+2] > 110) a[i*3+2] = -110; else if (a[i*3+2] < -110) a[i*3+2] = 110;
+    }
+    sg.attributes.position.needsUpdate = true;
+
+    // Colour morph + fog
+    const toC = ease(clamp01((r - 0.22) / 0.28)), toI = ease(clamp01((r - 0.7) / 0.3));
+    tmp.copy(cE).lerp(cC, toC).lerp(cG, toI * 0.6);
+    mat.color.copy(tmp); bmat.color.copy(tmp).lerp(cG, 0.35); cmat.color.copy(tmp); fillMat.color.copy(tmp); mat.opacity = 0.85 + 0.1 * toC;
+    root.style.setProperty('--accent', '#' + tmp.getHexString());
+    scene.fog.density = 0.005 + 0.008 * Math.sin(Math.min(1, r * 2) * Math.PI / 2) - 0.003 * toI;
+
+    // Pins: project 3D positions to screen
+    for (const p of places) {
+      p.v.set(p.x, p.y, p.z).applyMatrix4(world.matrixWorld);
+      const d = p.v.distanceTo(camera.position);
+      p.v.project(camera);
+      const vis = p.v.z < 1 && Math.abs(p.v.x) < 1.05 && Math.abs(p.v.y) < 1.05;
+      p.el.style.visibility = vis ? 'visible' : 'hidden';
+      p.el.style.opacity = clamp01(1.5 - d / 200).toFixed(2);
+      p.el.style.transform = `translate(${((p.v.x + 1) / 2 * innerWidth).toFixed(1)}px, ${((1 - p.v.y) / 2 * innerHeight).toFixed(1)}px) translate(-12px,-50%)`;
+    }
+
+    // Landing layer cooperation: pins and hint appear after the hero
+    const pinOp = clamp01((scrollY - innerHeight * 0.7) / (innerHeight * 0.4));
+    mkRoot.style.opacity = pinOp; mkRoot.style.visibility = pinOp < 0.02 ? 'hidden' : 'visible';
+    if (!hintDone && hint.isConnected) hint.style.opacity = scrollY > innerHeight * 0.9 ? 1 : 0;
+
+    // HUD
+    const s = r < 0.34 ? 0 : r < 0.72 ? 1 : 2; setStage(s);
+    const lo = [0, 0.34, 0.72][s], hi = [0.34, 0.72, 1][s], k = clamp01((r - lo) / (hi - lo)), [a0, a1] = stages[s].alt;
+    hudAlt.textContent = Math.round((a0 + (a1 - a0) * k) / 10) * 10;
+
+    renderer.render(scene, camera);
+  }
+  resize(); smooth = prev = target; frame();
+})();
+</script>
+
+<script>
+(() => {
+  'use strict';
+  const $ = (q, r = document) => r.querySelector(q), $$ = (q, r = document) => [...r.querySelectorAll(q)];
+  const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const canHover = matchMedia('(hover: hover)').matches;
+  const pulse = (ll) => window.mapPulse && window.mapPulse(ll[0], ll[1]);
+
+  /* ----- Hero landscape: procedural ridge layers ----- */
+  const rng = seed => () => (seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296;
+  const LAYERS = [
+    { seed: 11, base: 330, amp: 150, f: .46, c1: '#e4ede8', c2: '#f3f7f4' },
+    { seed: 23, base: 365, amp: 140, f: .37, c1: '#c3d8ce', c2: '#e2ece7' },
+    { seed: 37, base: 400, amp: 150, f: .28, c1: '#93baa8', c2: '#c9ddd3' },
+    { seed: 41, base: 430, amp: 130, f: .19, c1: '#528c75', c2: '#86b3a0' },
+    { seed: 59, base: 475, amp: 110, f: .10, c1: '#235e4b', c2: '#33765f' },
+    { seed: 67, base: 535, amp: 70,  f: .03, c1: '#0d3f33', c2: '#12493a' }
+  ];
+  const stack = $('#layers'), parts = [];
+  const add = (el, f) => { stack.appendChild(el); parts.push({ el, f }); };
+  const sun = document.createElement('div'); sun.className = 'sun'; add(sun, .58);
+  [[8, 6, 0.5], [30, 52, 0.42], [56, 20, 0.34]].forEach(c => {
+    const d = document.createElement('div'); d.className = 'cloud'; d.style.top = c[0] + 'vh'; d.style.left = c[1] + 'vw';
+    d.innerHTML = '<i style="animation-delay:-' + c[0] + 's"></i>'; add(d, c[2]);
+  });
+  LAYERS.forEach((L, i) => {
+    const r = rng(L.seed), W = 1600, H = 600, ph = [r() * 6, r() * 6, r() * 6];
+    let d = 'M0 ' + H;
+    for (let x = 0; x <= W; x += 20) {
+      const n = Math.sin(x * .004 + ph[0]) * .5 + Math.sin(x * .011 + ph[1]) * .3 + Math.sin(x * .027 + ph[2]) * .2 + (r() - .5) * .2;
+      d += ' L' + x + ' ' + (L.base - L.amp * (.5 + .5 * n)).toFixed(1);
+    }
+    d += ' L' + W + ' ' + H + ' Z';
+    const el = document.createElement('div'); el.className = 'layer';
+    el.innerHTML = '<svg viewBox="0 0 1600 600" preserveAspectRatio="none" class="block w-full h-full"><defs><linearGradient id="lg' + i + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="' + L.c1 + '"/><stop offset="1" stop-color="' + L.c2 + '"/></linearGradient></defs><path d="' + d + '" fill="url(#lg' + i + ')" stroke="rgba(255,255,255,.55)" stroke-width="1.2" vector-effect="non-scaling-stroke"/></svg>';
+    add(el, L.f);
+  });
+
+  /* ----- Text reveals ----- */
+  $$('[data-reveal]').forEach(el => {
+    el.innerHTML = el.textContent.trim().split(/\s+/).map((w, i) => '<span class="w"><span style="transition-delay:' + i * 55 + 'ms">' + w + '</span></span>').join(' ');
+  });
+  $$('.scrub').forEach(el => {
+    el.innerHTML = el.textContent.trim().split(/\s+/).map(w => '<span class="sw">' + w + '</span>').join(' ');
+    el._w = $$('.sw', el);
+  });
+  const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }), { threshold: .25 });
+  $$('[data-reveal], .fade').forEach(el => reduce ? el.classList.add('in') : io.observe(el));
+
+  /* ----- Trail highlights (horizontal scroll) ----- */
+  const TRAILS = [
+    { n: 'Triund', alt: '2,828 m', dist: 'about 9 km', time: '1 to 2 days', lvl: 'Easy', ll: [76.35, 32.27], prof: [0, .12, .25, .34, .5, .62, .78, .9, 1],
+      t: 'A steady climb from McLeod Ganj to a grassy ridge facing the Dhauladhar wall.' },
+    { n: 'Bhrigu Lake', alt: '4,300 m', dist: 'about 20 km', time: '2 to 3 days', lvl: 'Moderate', ll: [77.17, 32.35], prof: [0, .2, .35, .55, .5, .7, .9, 1, .95],
+      t: 'From Gulaba above Manali, through meadows to a glacial lake that can stay frozen into June.' },
+    { n: 'Hampta Pass', alt: '4,270 m', dist: 'about 26 km', time: '4 to 5 days', lvl: 'Moderate', ll: [77.38, 32.27], prof: [.2, .35, .5, .45, .7, 1, .6, .4, .5],
+      t: 'Crosses from green Kullu into dry Lahaul, then continues toward Chandratal.' },
+    { n: 'Chandratal', alt: '4,300 m', dist: 'short walk', time: '1 to 2 days', lvl: 'Easy', ll: [77.61, 32.48], prof: [0, .05, .1, .1, .15, .2, .2, .25, .25],
+      t: 'A crescent lake above Spiti, best at dawn when the water goes still.' },
+    { n: 'Pin Parvati Pass', alt: '5,319 m', dist: 'about 110 km', time: '9 to 11 days', lvl: 'Hard', ll: [77.85, 32.0], prof: [.1, .25, .4, .55, .7, .85, 1, .7, .35],
+      t: 'A long crossing from the Parvati valley to Spiti, with glaciers, hot springs and high camps.' }
+  ];
+  const track = $('#track'), chosen = new Set(), custom = new Set(), cards = {}; let seasonIdx = 1;
+  TRAILS.forEach(T => {
+    const pts = T.prof.map((v, i) => [(i / (T.prof.length - 1)) * 300, 80 - v * 68]);
+    const line = pts.map((p, i) => (i ? 'L' : 'M') + p[0].toFixed(0) + ' ' + p[1].toFixed(0)).join(' ');
+    const a = document.createElement('article');
+    a.className = 'trail glass rounded-3xl p-5 md:p-6 flex flex-col cursor-pointer';
+    a.tabIndex = 0;
+    a.innerHTML = '<span class="pick" aria-hidden="true"></span><svg viewBox="0 0 300 90" class="w-full h-24 md:h-28" aria-hidden="true"><path d="' + line + ' L300 90 L0 90 Z" fill="var(--accent)" fill-opacity=".1"/><path d="' + line + '" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linejoin="round"/></svg>' +
+      '<div class="flex items-baseline justify-between mt-5 gap-3"><h3 class="serif text-2xl md:text-3xl">' + T.n + '</h3><span class="text-xs accent whitespace-nowrap">' + T.lvl + '</span></div>' +
+      '<p class="text-sm opacity-75 mt-2 leading-relaxed">' + T.t + '</p>' +
+      '<dl class="mt-auto pt-5 grid grid-cols-3 gap-3 text-xs"><div><dt class="opacity-55">Highest</dt><dd class="text-sm mt-0.5">' + T.alt + '</dd></div><div><dt class="opacity-55">Distance</dt><dd class="text-sm mt-0.5">' + T.dist + '</dd></div><div><dt class="opacity-55">Time</dt><dd class="text-sm mt-0.5">' + T.time + '</dd></div></dl>';
+    let last = 0; const go = () => { const n = performance.now(); if (n - last > 900) { last = n; pulse(T.ll); } };
+    a.addEventListener('pointerenter', go); a.addEventListener('click', go); a.addEventListener('focus', go);
+    cards[T.n] = a; a.setAttribute('role', 'button'); a.setAttribute('aria-pressed', 'false');
+    const tog = () => { chosen.has(T.n) ? chosen.delete(T.n) : chosen.add(T.n); a.setAttribute('aria-pressed', chosen.has(T.n)); sync(); };
+    a.addEventListener('click', tog); a.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); tog(); } });
+    track.appendChild(a);
+  });
+  const end = document.createElement('div');
+  end.className = 'flex-none w-[min(82vw,24rem)] flex flex-col justify-center pr-6';
+  end.innerHTML = '<p class="serif text-3xl md:text-4xl leading-tight">Your trail is next.</p><div class="mag mt-6 self-start"><a href="#plan" class="btn btn-solid">Choose a season</a></div>';
+  track.appendChild(end);
+
+  const trails = $('#trails'), bar = $('#trailBar');
+  let tTop = 0, tSpan = 1, tMax = 0, tp = 0;
+  function measure() {
+    tMax = Math.max(0, track.scrollWidth - innerWidth);
+    trails.style.height = (tMax + innerHeight * 1.15) + 'px';
+    tTop = trails.getBoundingClientRect().top + scrollY; tSpan = tMax + innerHeight * .15;
+  }
+
+  /* ----- Magnetic buttons ----- */
+  const mags = $$('.mag');
+  if (canHover && !reduce) {
+    addEventListener('pointermove', e => mags.forEach(m => {
+      const b = m.firstElementChild, r = m.getBoundingClientRect();
+      const cx = r.left + r.width / 2 - (m._x || 0), cy = r.top + r.height / 2 - (m._y || 0);
+      const dx = e.clientX - cx, dy = e.clientY - cy;
+      if (Math.hypot(dx / (r.width / 2 + 56), dy / (r.height / 2 + 56)) < 1) {
+        m._x = dx * .3; m._y = dy * .3; m.classList.add('on'); b.style.transform = 'translate(' + dx * .1 + 'px,' + dy * .1 + 'px)';
+      } else if (m._x || m._y) { m._x = m._y = 0; m.classList.remove('on'); b.style.transform = ''; }
+      m.style.transform = 'translate(' + (m._x || 0) + 'px,' + (m._y || 0) + 'px)';
+    }), { passive: true });
+  }
+
+  /* ----- Season picker ----- */
+  const SEASONS = [
+    { n: 'Spring', t: 'March to May', x: 'Valleys wake up. Kangra, Shimla and Kullu are green and mild, rhododendrons bloom, and Triund opens by April. High passes stay closed.', ll: [76.3, 32.1] },
+    { n: 'Summer', t: 'June to August', x: 'Lahaul and Spiti open up. This is the season for Hampta Pass, Bhrigu Lake and Chandratal. Monsoon rain hits the lower hills from July, so head higher.', ll: [78.07, 32.22] },
+    { n: 'Autumn', t: 'September to November', x: 'Clear skies and apple harvest in Kinnaur and Shimla. Passes begin closing from late October, so plan high trails early.', ll: [78.25, 31.54] },
+    { n: 'Winter', t: 'December to February', x: 'Snow around Narkanda, Manali and Dharamshala. Shimla and Kufri are the easy winter bases. Spiti is possible but demanding.', ll: [77.17, 31.1] }
+  ];
+  const sBox = $('#seasons'), sT = $('#sTitle'), sX = $('#sText'); let swapT;
+  function renderPills() {
+    const box = $('#pills'); box.textContent = '';
+    chosen.forEach(n => {
+      const p = document.createElement('span'), b = document.createElement('button');
+      p.className = 'pill' + (custom.has(n) ? ' cu' : ''); p.append(n);
+      b.type = 'button'; b.textContent = '\u00d7'; b.setAttribute('aria-label', 'Remove ' + n);
+      b.addEventListener('click', () => { chosen.delete(n); custom.delete(n); if (cards[n]) cards[n].setAttribute('aria-pressed', 'false'); sync(); });
+      p.append(b); box.append(p);
+    });
+  }
+  function addCustom() {
+    const inp = $('#cust'), msg = $('#custMsg');
+    const v = inp.value.replace(/[^\p{L}\p{N}\s'.-]/gu, ' ').replace(/\s+/g, ' ').trim().slice(0, 40).split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+    if (!v) { msg.textContent = 'Type a place name first.'; return; }
+    const low = v.toLowerCase(), key = Object.keys(cards).find(k => k.toLowerCase() === low);
+    if ([...chosen].some(c => c.toLowerCase() === low)) { msg.textContent = v + ' is already in your plan.'; return; }
+    if (!key && custom.size >= 8) { msg.textContent = 'You can add up to 8 custom places.'; return; }
+    if (key) { chosen.add(key); cards[key].setAttribute('aria-pressed', 'true'); } else { chosen.add(v); custom.add(v); }
+    inp.value = ''; msg.textContent = (key || v) + ' added.'; sync();
+  }
+  function sync() {
+    const t = [...chosen]; renderPills();
+    $('#planSum').textContent = (t.length ? t.length + (t.length > 1 ? ' places' : ' place') + ' selected' : 'Nothing selected yet, click trail cards or add your own') + ' \u00b7 ' + SEASONS[seasonIdx].n;
+    $('#planBtn').href = 'details.html?season=' + encodeURIComponent(SEASONS[seasonIdx].n) + '&trails=' + encodeURIComponent(t.join(','));
+  }
+  function pick(i, first) {
+    seasonIdx = i; sync();
+    $$('button', sBox).forEach((b, k) => b.setAttribute('aria-pressed', k === i));
+    const S = SEASONS[i], set = () => { sT.textContent = S.n + ', ' + S.t; sX.textContent = S.x; sT.classList.remove('out'); sX.classList.remove('out'); };
+    if (first) return set();
+    sT.classList.add('out'); sX.classList.add('out'); clearTimeout(swapT); swapT = setTimeout(set, 300); pulse(S.ll);
+  }
+  SEASONS.forEach((S, i) => { const b = document.createElement('button'); b.className = 'btn btn-line chip'; b.textContent = S.n; b.addEventListener('click', () => pick(i)); sBox.appendChild(b); });
+  pick(1, true);
+  $('#custAdd').addEventListener('click', addCustom);
+  $('#cust').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); addCustom(); } });
+  $('#toTop').addEventListener('click', () => scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' }));
+
+  /* ----- Loop: parallax, scrubbed words, horizontal scroll ----- */
+  let tx = 0, ty = 0, px = 0;
+  addEventListener('pointermove', e => { tx = e.clientX / innerWidth * 2 - 1; ty = e.clientY / innerHeight * 2 - 1; }, { passive: true });
+  const heroText = $('#heroText'), scrubs = $$('.scrub');
+  function tick() {
+    requestAnimationFrame(tick);
+    const vh = innerHeight, sy = scrollY;
+    px += (tx - px) * .06;
+    if (sy < vh * 1.3 && !reduce) {
+      parts.forEach(p => p.el.style.transform = 'translate3d(' + (-px * (1 - p.f) * 26).toFixed(1) + 'px,' + (sy * p.f).toFixed(1) + 'px,0)');
+      heroText.style.transform = 'translate3d(0,' + (sy * .26).toFixed(1) + 'px,0)';
+      heroText.style.opacity = clamp(1 - sy / (vh * .7));
+    }
+    scrubs.forEach(el => {
+      const r = el.getBoundingClientRect(); if (r.bottom < 0 || r.top > vh) return;
+      const p = reduce ? 1 : clamp((vh * .88 - r.top) / (vh * .5 + r.height * .5)), n = el._w.length;
+      el._w.forEach((w, i) => w.style.opacity = (.14 + .86 * clamp(p * (n + 5) - i)).toFixed(2));
+    });
+    const raw = clamp((sy - tTop) / tSpan); tp += (raw - tp) * .12;
+    track.style.transform = 'translate3d(' + (-tp * tMax * (tSpan / (tSpan - vh * .15 + .001))).toFixed(1) + 'px,0,0)';
+    bar.style.transform = 'scaleX(' + clamp(tp * 1.0).toFixed(3) + ')';
+  }
+  addEventListener('resize', measure);
+  addEventListener('load', measure);
+  measure(); tick();
+})();
+</script>
+</body>
+</html>
