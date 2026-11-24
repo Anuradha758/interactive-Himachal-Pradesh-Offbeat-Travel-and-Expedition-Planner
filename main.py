@@ -10,7 +10,7 @@ from fastapi.responses import HTMLResponse
 from data import build_itinerary
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-TEMPLATE_DIR = os.path.join(BASE_DIR, "templates")
+TEMPLATE_DIR = os.path.join(BASE_DIR, ".")
 
 app = FastAPI(title="Himachal Pradesh Travel Mission Command Centre")
 
